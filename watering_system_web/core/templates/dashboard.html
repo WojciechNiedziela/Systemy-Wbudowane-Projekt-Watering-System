@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Watering</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.brand-logo { display:block; text-align:center; width:100%; font-size:1.4rem; }
+.header-img { max-height:36px; vertical-align:middle; margin-right:8px; }
+.controls .btn { margin-right:10px; margin-bottom:8px; }
+.container { margin-top:18px; }
+</style>
+</head>
+<body class="grey lighten-4">
+
+<nav class="teal">
+  <div class="nav-wrapper">
+    <a class="brand-logo">Watering</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="section controls">
+    <a href="/podlej/" class="btn green">Podlej +10%</a>
+    <a href="/obroc/" class="btn blue">Obróć</a>
+    <a href="/zmierz/" class="btn grey">Zmierz wilgotność</a>
+    <a href="/pomiary/" class="btn purple">Wszystkie pomiary</a>
+
+    <div style="margin-top:12px;">
+      <div class="switch">
+        <label>
+          Manual
+          <input type="checkbox" onchange="location.href='/ustaw_auto/toggle/'" {% if settings.auto %}checked{% endif %}>
+          <span class="lever"></span>
+          Auto
+        </label>
+      </div>
+    </div>
+
+    <p style="margin-top:10px;">Aktualna wilgotność: <strong>{{ current|floatformat:1 }}%</strong></p>
+  </div>
+
+  <div class="card">
+    <div class="card-content">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+  <h5 class="center-align">Ostatnie pomiary</h5>
+  <ul class="collection">
+    {% for p in pomiary %}
+      <li class="collection-item">{{ p.data }} — {{ p.wilgotnosc }}%</li>
+    {% empty %}
+      <li class="collection-item">Brak pomiarów</li>
+    {% endfor %}
+  </ul>
+
+  <h5 class="center-align">Logi</h5>
+  <ul class="collection">
+    {% for l in logi %}
+      <li class="collection-item">{{ l.data }} — <strong>{{ l.akcja }}</strong> {{ l.szczegoly }}</li>
+    {% empty %}
+      <li class="collection-item">Brak logów</li>
+    {% endfor %}
+  </ul>
+
+</div>
+
+<script>
+fetch('/api/dane/').then(r=>r.json()).then(d=>{
+  new Chart(document.getElementById('chart'),{
+    type:'line',
+    data:{
+      labels:d.labels,
+      datasets:[{label:'Wilgotność %', data:d.wilgotnosc, fill:false, tension:0.1}]
+    },
+    options:{scales:{y:{beginAtZero:true, max:100}}}
+  });
+});
+</script>
+
+</body>
+</html>
